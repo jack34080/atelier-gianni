@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Atelier GIANNI P. – Version stable</title>
+    <title>Atelier GIANNI P. – Version stable (extraction fichiers)</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -30,7 +30,7 @@
             display: flex;
             flex-wrap: wrap;
             gap: 0.5rem;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
             padding-bottom: 1rem;
             border-bottom: 1px solid #3a3a5a;
         }
@@ -52,9 +52,7 @@
         .api-bar button:hover { background: #ff9f1c; }
         .status { font-size: 0.75rem; margin-left: auto; align-self: center; }
         .megaprompt-section {
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid #3a3a5a;
+            margin-bottom: 1rem;
         }
         .megaprompt-section textarea {
             width: 100%;
@@ -71,16 +69,17 @@
             background: #1e1e2f;
             border-radius: 12px;
             padding: 1rem;
-            height: 400px;
+            height: 500px;
             overflow-y: auto;
             margin-bottom: 1rem;
         }
         .message {
-            margin-bottom: 0.75rem;
+            margin-bottom: 1rem;
             padding: 0.5rem 1rem;
             border-radius: 12px;
             max-width: 85%;
             word-wrap: break-word;
+            position: relative;
         }
         .message.user {
             background: #ffb34720;
@@ -92,9 +91,26 @@
             background: #2a3a5a;
             border-left: 3px solid #ffb347;
         }
+        .message-actions {
+            margin-top: 0.5rem;
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+        }
+        .message-actions button {
+            background: #3a4a6a;
+            border: none;
+            padding: 0.2rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            color: #e0e0e0;
+        }
+        .message-actions button:hover { background: #ffb347; color: #1e1e2f; }
         .input-area {
             display: flex;
             gap: 0.5rem;
+            margin-bottom: 1rem;
         }
         .input-area textarea {
             flex: 1;
@@ -133,6 +149,14 @@
             color: #e0e0e0;
         }
         .export-bar button:hover { background: #3a4a6a; }
+        .legal {
+            margin-top: 1rem;
+            font-size: 0.7rem;
+            text-align: center;
+            color: #aaa;
+            cursor: pointer;
+            text-decoration: underline;
+        }
         .toast {
             position: fixed;
             bottom: 20px;
@@ -149,6 +173,31 @@
             z-index: 1000;
         }
         .toast.show { opacity: 1; }
+        .modal {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        .modal-content {
+            background: #2a2a3e;
+            padding: 1.5rem;
+            border-radius: 16px;
+            max-width: 500px;
+            text-align: center;
+        }
+        .modal-content button {
+            margin-top: 1rem;
+            background: #ffb347;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -171,8 +220,8 @@
     </div>
 
     <div class="megaprompt-section">
-        <label style="font-weight:bold;">🧠 Méga‑prompt (instructions système)</label>
-        <textarea id="megapromptInput" placeholder="Instructions système (style, règles, contexte…)"></textarea>
+        <label>🧠 Méga‑prompt (instructions système)</label>
+        <textarea id="megapromptInput" placeholder="Instructions système..."></textarea>
         <div style="display:flex; justify-content:flex-end; margin-top:0.3rem;">
             <button id="saveMegapromptBtn" style="background:#2a3a5a; border:none; padding:0.2rem 1rem;">💾 Enregistrer</button>
         </div>
@@ -190,10 +239,48 @@
         <button id="exportHtmlBtn">💾 Sauvegarder cet outil (HTML)</button>
         <button id="clearChatBtn" style="background:#5a2a2a;">🗑️ Effacer chat</button>
     </div>
+    <div class="legal" id="legalBtn">⚖️ Mentions légales & cadre juridique</div>
 </div>
 <div id="toast" class="toast"></div>
 
 <script>
+    // ==================== CADRE JURIDIQUE ====================
+    const LEGAL_TEXT = `⚖️ LOI N°1 – Cadre juridique et protection :
+- L'utilisateur est seul responsable des contenus générés.
+- L'IA ne doit pas générer de contenu contrefaisant ou plagié.
+- Toute exploitation commerciale des productions doit respecter les droits d'auteur.
+- Les données restent locales (aucun transfert externe).
+- Dépôt INPI : DSO2026016871 – GIANNI P.`;
+
+    if (!localStorage.getItem('legal_accepted')) {
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.innerHTML = `<div class="modal-content">
+            <h3>📜 Conditions d'utilisation</h3>
+            <p>En utilisant cet atelier, vous acceptez le cadre juridique suivant :</p>
+            <pre style="text-align:left; background:#1e1e2f; padding:0.5rem; border-radius:8px;">${LEGAL_TEXT}</pre>
+            <button id="acceptLegal">J'accepte</button>
+        </div>`;
+        document.body.appendChild(modal);
+        document.getElementById('acceptLegal').onclick = () => {
+            localStorage.setItem('legal_accepted', 'true');
+            modal.remove();
+            showToast("Cadre juridique accepté.");
+        };
+    }
+
+    function showLegal() { alert(LEGAL_TEXT); }
+    document.getElementById('legalBtn').onclick = showLegal;
+
+    function injectLegalInMegaprompt() {
+        let current = document.getElementById('megapromptInput').value;
+        if (!current.includes("LOI N°1")) {
+            current = current + "\n\n" + LEGAL_TEXT;
+            document.getElementById('megapromptInput').value = current;
+            saveMegaprompt();
+        }
+    }
+
     // ==================== STOCKAGE LOCAL ====================
     const MEGAPROMPT_KEY = 'megaprompt_v10';
     const CHAT_KEY = 'chat_history_stable';
@@ -210,10 +297,10 @@
         setTimeout(() => toast.classList.remove('show'), 3000);
     }
 
-    // Chargement / sauvegarde du méga‑prompt
     function loadMegaprompt() {
         const saved = localStorage.getItem(MEGAPROMPT_KEY);
         if (saved) document.getElementById('megapromptInput').value = saved;
+        injectLegalInMegaprompt();
     }
     function saveMegaprompt() {
         const val = document.getElementById('megapromptInput').value;
@@ -221,22 +308,15 @@
         showToast('Méga‑prompt sauvegardé');
     }
 
-    // Chargement / sauvegarde de l'historique
     function loadChat() {
         const saved = localStorage.getItem(CHAT_KEY);
-        if (saved) {
-            try { chatHistory = JSON.parse(saved); } catch(e) {}
-        }
-        if (!chatHistory.length) {
-            chatHistory = [{ role: 'assistant', content: 'Atelier prêt. Entrez votre clé API et commencez.' }];
-        }
+        if (saved) { try { chatHistory = JSON.parse(saved); } catch(e) {} }
+        if (!chatHistory.length) chatHistory = [{ role: 'assistant', content: 'Atelier prêt. Cadre juridique actif.' }];
         renderChat();
     }
-    function saveChat() {
-        localStorage.setItem(CHAT_KEY, JSON.stringify(chatHistory));
-    }
-    function addMessage(role, content) {
-        chatHistory.push({ role, content, timestamp: Date.now() });
+    function saveChat() { localStorage.setItem(CHAT_KEY, JSON.stringify(chatHistory)); }
+    function addMessage(role, content, timestamp = Date.now()) {
+        chatHistory.push({ role, content, timestamp });
         saveChat();
         renderChat();
     }
@@ -250,13 +330,73 @@
     function renderChat() {
         const container = document.getElementById('chatMessages');
         container.innerHTML = '';
-        chatHistory.forEach(msg => {
+        chatHistory.forEach((msg, idx) => {
             const div = document.createElement('div');
             div.className = `message ${msg.role}`;
             div.textContent = msg.content;
             container.appendChild(div);
+
+            if (msg.role === 'assistant') {
+                const actionsDiv = document.createElement('div');
+                actionsDiv.className = 'message-actions';
+
+                // Copier le texte
+                const copyBtn = document.createElement('button');
+                copyBtn.textContent = '📋 Copier .txt';
+                copyBtn.onclick = () => {
+                    navigator.clipboard.writeText(msg.content);
+                    showToast('Texte copié');
+                };
+
+                // Télécharger les fichiers (extraction des blocs de code)
+                const downloadBtn = document.createElement('button');
+                downloadBtn.textContent = '📦 Télécharger fichiers';
+                downloadBtn.onclick = () => extractAndDownloadFiles(msg.content);
+
+                actionsDiv.appendChild(copyBtn);
+                actionsDiv.appendChild(downloadBtn);
+                div.appendChild(actionsDiv);
+            }
         });
         container.scrollTop = container.scrollHeight;
+    }
+
+    // Extraction des blocs de code markdown
+    function extractAndDownloadFiles(content) {
+        const regex = /```(\w+)\n([\s\S]*?)```/g;
+        let match;
+        let files = [];
+        while ((match = regex.exec(content)) !== null) {
+            let lang = match[1].toLowerCase();
+            let code = match[2].trim();
+            let filename = '';
+            switch (lang) {
+                case 'html': filename = 'fichier.html'; break;
+                case 'javascript': filename = 'script.js'; break;
+                case 'css': filename = 'style.css'; break;
+                case 'json': filename = 'data.json'; break;
+                case 'txt': filename = 'document.txt'; break;
+                default: filename = `fichier.${lang}`; break;
+            }
+            files.push({ filename, content: code });
+        }
+        if (files.length === 0) {
+            showToast("Aucun bloc de code trouvé.");
+            return;
+        }
+        // Télécharger chaque fichier
+        files.forEach(file => {
+            const blob = new Blob([file.content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = file.filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+        showToast(`${files.length} fichier(s) téléchargé(s).`);
     }
 
     // ==================== APPELS API ====================
@@ -268,7 +408,9 @@
         abortController = new AbortController();
         const signal = abortController.signal;
 
-        const systemMsg = document.getElementById('megapromptInput').value || '';
+        let systemMsg = document.getElementById('megapromptInput').value || '';
+        if (!systemMsg.includes("LOI N°1")) systemMsg += "\n\n" + LEGAL_TEXT;
+
         const messages = [];
         if (systemMsg) messages.push({ role: 'system', content: systemMsg });
         const recentHistory = chatHistory.slice(-20).filter(m => m.role !== 'system');
@@ -416,33 +558,19 @@
         });
         document.getElementById('saveMegapromptBtn').addEventListener('click', saveMegaprompt);
         document.getElementById('testApiBtn').addEventListener('click', async () => {
-            try {
-                await callAPI('Réponds "OK"', () => {});
-                document.getElementById('apiStatus').textContent = '🟢 Connecté';
-                showToast('API OK');
-            } catch(e) {
-                document.getElementById('apiStatus').textContent = '🔴 Erreur';
-                showToast(`Erreur : ${e.message}`);
-            }
+            try { await callAPI('Réponds "OK"', () => {}); showToast('API OK'); document.getElementById('apiStatus').textContent = '🟢 Connecté'; }
+            catch(e) { showToast(`Erreur : ${e.message}`); document.getElementById('apiStatus').textContent = '🔴 Erreur'; }
         });
         document.getElementById('sendBtn').addEventListener('click', sendMessage);
         document.getElementById('chatInput').addEventListener('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-                e.preventDefault();
-                sendMessage();
-            }
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); sendMessage(); }
         });
         document.getElementById('exportTxtBtn').addEventListener('click', exportTxt);
         document.getElementById('exportJsonBtn').addEventListener('click', exportJson);
         document.getElementById('exportHtmlBtn').addEventListener('click', exportHtml);
         document.getElementById('clearChatBtn').addEventListener('click', clearChat);
-        // Auto-resize textarea
         const chatInput = document.getElementById('chatInput');
-        chatInput.addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = Math.min(this.scrollHeight, 150) + 'px';
-        });
-        // Mode réflexion (optionnel)
+        chatInput.addEventListener('input', function() { this.style.height = 'auto'; this.style.height = Math.min(this.scrollHeight, 150) + 'px'; });
         const modelSelect = document.getElementById('modelSelect');
         const thinkingDiv = document.createElement('div');
         thinkingDiv.style.display = 'none';
@@ -453,7 +581,11 @@
             thinkingDiv.style.display = isV4Pro ? 'inline-flex' : 'none';
         });
         document.getElementById('thinkingCheck')?.addEventListener('change', (e) => { useThinking = e.target.checked; });
-        showToast('Atelier prêt. Entrez votre clé API.');
+        if (!localStorage.getItem('legal_accepted')) {
+            // déjà
+        } else {
+            showToast('Atelier prêt. Boutons "📦 Télécharger fichiers" actifs.');
+        }
     });
 </script>
 </body>
