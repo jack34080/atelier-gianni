@@ -340,7 +340,6 @@
                 const actionsDiv = document.createElement('div');
                 actionsDiv.className = 'message-actions';
 
-                // Copier le texte
                 const copyBtn = document.createElement('button');
                 copyBtn.textContent = '📋 Copier .txt';
                 copyBtn.onclick = () => {
@@ -348,7 +347,6 @@
                     showToast('Texte copié');
                 };
 
-                // Télécharger les fichiers (extraction des blocs de code)
                 const downloadBtn = document.createElement('button');
                 downloadBtn.textContent = '📦 Télécharger fichiers';
                 downloadBtn.onclick = () => extractAndDownloadFiles(msg.content);
@@ -361,7 +359,6 @@
         container.scrollTop = container.scrollHeight;
     }
 
-    // Extraction des blocs de code markdown
     function extractAndDownloadFiles(content) {
         const regex = /```(\w+)\n([\s\S]*?)```/g;
         let match;
@@ -384,7 +381,6 @@
             showToast("Aucun bloc de code trouvé.");
             return;
         }
-        // Télécharger chaque fichier
         files.forEach(file => {
             const blob = new Blob([file.content], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
@@ -502,14 +498,12 @@
         }
     }
 
-    // ==================== EXPORTS ====================
     function exportTxt() {
         let txt = '';
         chatHistory.forEach(m => txt += `${m.role.toUpperCase()}: ${m.content}\n\n`);
         const blob = new Blob([txt], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url;
+        a.href = URL.createObjectURL(blob);
         a.download = `conversation_${new Date().toISOString().slice(0,19)}.txt`;
         a.click();
         showToast('Conversation exportée en TXT');
@@ -518,9 +512,8 @@
         const megaprompt = document.getElementById('megapromptInput').value;
         const data = { megaprompt, exportDate: new Date().toISOString() };
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url;
+        a.href = URL.createObjectURL(blob);
         a.download = `megaprompt_${new Date().toISOString().slice(0,19)}.json`;
         a.click();
         showToast('Méga‑prompt exporté en JSON');
@@ -528,15 +521,13 @@
     function exportHtml() {
         const htmlContent = document.documentElement.outerHTML;
         const blob = new Blob([htmlContent], { type: 'text/html' });
-        const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url;
+        a.href = URL.createObjectURL(blob);
         a.download = `atelier_backup_${new Date().toISOString().slice(0,10)}.html`;
         a.click();
         showToast('Outils sauvegardé (HTML)');
     }
 
-    // ==================== INITIALISATION ====================
     document.addEventListener('DOMContentLoaded', () => {
         loadMegaprompt();
         loadChat();
