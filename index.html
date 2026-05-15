@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atelier GIANNI P. – Version stable</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #1e1e2f;
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #2a2a3e;
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+        h1 {
+            font-size: 1.5rem;
+            color: #ffb347;
+            margin-bottom: 0.5rem;
+        }
+        .api-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #3a3a5a;
+        }
+        .api-bar select, .api-bar input, .api-bar button {
+            background: #1e1e2f;
+            border: 1px solid #3a3a5a;
+            padding: 0.5rem;
+            border-radius: 6px;
+            color: #e0e0e0;
+            font-size: 0.9rem;
+        }
+        .api-bar button {
+            background: #ffb347;
+            color: #1e1e2f;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+        }
+        .api-bar button:hover { background: #ff9f1c; }
+        .status { font-size: 0.75rem; margin-left: auto; align-self: center; }
+        .megaprompt-section {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #3a3a5a;
+        }
+        .megaprompt-section textarea {
+            width: 100%;
+            height: 100px;
+            background: #1e1e2f;
+            border: 1px solid #3a3a5a;
+            color: #e0e0e0;
+            padding: 0.5rem;
+            border-radius: 8px;
+            resize: vertical;
+            font-family: monospace;
+        }
+        .chat-messages {
+            background: #1e1e2f;
+            border-radius: 12px;
+            padding: 1rem;
+            height: 400px;
+            overflow-y: auto;
+            margin-bottom: 1rem;
+        }
+        .message {
+            margin-bottom: 0.75rem;
+            padding: 0.5rem 1rem;
+            border-radius: 12px;
+            max-width: 85%;
+            word-wrap: break-word;
+        }
+        .message.user {
+            background: #ffb34720;
+            border-left: 3px solid #ffb347;
+            margin-left: auto;
+            text-align: right;
+        }
+        .message.assistant {
+            background: #2a3a5a;
+            border-left: 3px solid #ffb347;
+        }
+        .input-area {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .input-area textarea {
+            flex: 1;
+            background: #1e1e2f;
+            border: 1px solid #3a3a5a;
+            color: #e0e0e0;
+            padding: 0.75rem;
+            border-radius: 12px;
+            resize: none;
+            font-family: monospace;
+            min-height: 60px;
+        }
+        .input-area button {
+            background: #ffb347;
+            border: none;
+            padding: 0 1.5rem;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #1e1e2f;
+        }
+        .export-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #3a3a5a;
+        }
+        .export-bar button {
+            background: #2a3a5a;
+            border: 1px solid #3a3a5a;
+            padding: 0.4rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            color: #e0e0e0;
+        }
+        .export-bar button:hover { background: #3a4a6a; }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ffb347;
+            color: #1e1e2f;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 1000;
+        }
+        .toast.show { opacity: 1; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🧠 Atelier GIANNI P. – Version stable</h1>
+    <div class="api-bar">
+        <select id="providerSelect">
+            <option value="deepseek">DeepSeek</option>
+            <option value="gemini">Gemini</option>
+            <option value="anthropic">Anthropic</option>
+        </select>
+        <input type="password" id="apiKeyInput" placeholder="Clé API" style="min-width:200px;">
+        <select id="modelSelect">
+            <option value="deepseek-v4-flash">DeepSeek V4 Flash</option>
+            <option value="deepseek-v4-pro">DeepSeek V4 Pro</option>
+            <option value="deepseek-chat">DeepSeek V3</option>
+        </select>
+        <button id="testApiBtn">🩺 Tester</button>
+        <span id="apiStatus" class="status">⚫ Hors ligne</span>
+    </div>
+
+    <div class="megaprompt-section">
+        <label style="font-weight:bold;">🧠 Méga‑prompt (instructions système)</label>
+        <textarea id="megapromptInput" placeholder="Instructions système (style, règles, contexte…)"></textarea>
+        <div style="display:flex; justify-content:flex-end; margin-top:0.3rem;">
+            <button id="saveMegapromptBtn" style="background:#2a3a5a; border:none; padding:0.2rem 1rem;">💾 Enregistrer</button>
+        </div>
+    </div>
+
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="input-area">
+        <textarea id="chatInput" placeholder="Votre message... (Ctrl+Entrée = envoyer)"></textarea>
+        <button id="sendBtn">➤ Envoyer</button>
+    </div>
+
+    <div class="export-bar">
+        <button id="exportTxtBtn">📄 Exporter conversation (TXT)</button>
+        <button id="exportJsonBtn">📦 Exporter méga‑prompt (JSON)</button>
+        <button id="exportHtmlBtn">💾 Sauvegarder cet outil (HTML)</button>
+        <button id="clearChatBtn" style="background:#5a2a2a;">🗑️ Effacer chat</button>
+    </div>
+</div>
+<div id="toast" class="toast"></div>
+
+<script>
+    // ==================== STOCKAGE LOCAL ====================
+    const MEGAPROMPT_KEY = 'megaprompt_v10';
+    const CHAT_KEY = 'chat_history_stable';
+
+    let chatHistory = [];
+    let isStreaming = false;
+    let abortController = null;
+    let useThinking = false;
+
+    function showToast(msg) {
+        const toast = document.getElementById('toast');
+        toast.textContent = msg;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    // Chargement / sauvegarde du méga‑prompt
+    function loadMegaprompt() {
+        const saved = localStorage.getItem(MEGAPROMPT_KEY);
+        if (saved) document.getElementById('megapromptInput').value = saved;
+    }
+    function saveMegaprompt() {
+        const val = document.getElementById('megapromptInput').value;
+        localStorage.setItem(MEGAPROMPT_KEY, val);
+        showToast('Méga‑prompt sauvegardé');
+    }
+
+    // Chargement / sauvegarde de l'historique
+    function loadChat() {
+        const saved = localStorage.getItem(CHAT_KEY);
+        if (saved) {
+            try { chatHistory = JSON.parse(saved); } catch(e) {}
+        }
+        if (!chatHistory.length) {
+            chatHistory = [{ role: 'assistant', content: 'Atelier prêt. Entrez votre clé API et commencez.' }];
+        }
+        renderChat();
+    }
+    function saveChat() {
+        localStorage.setItem(CHAT_KEY, JSON.stringify(chatHistory));
+    }
+    function addMessage(role, content) {
+        chatHistory.push({ role, content, timestamp: Date.now() });
+        saveChat();
+        renderChat();
+    }
+    function clearChat() {
+        if (confirm('Effacer toute la conversation ?')) {
+            chatHistory = [{ role: 'assistant', content: 'Historique effacé.' }];
+            saveChat();
+            renderChat();
+        }
+    }
+    function renderChat() {
+        const container = document.getElementById('chatMessages');
+        container.innerHTML = '';
+        chatHistory.forEach(msg => {
+            const div = document.createElement('div');
+            div.className = `message ${msg.role}`;
+            div.textContent = msg.content;
+            container.appendChild(div);
+        });
+        container.scrollTop = container.scrollHeight;
+    }
+
+    // ==================== APPELS API ====================
+    async function callAPI(prompt, onChunk) {
+        const provider = document.getElementById('providerSelect').value;
+        const apiKey = document.getElementById('apiKeyInput').value.trim();
+        if (!apiKey) throw new Error('Clé API manquante');
+        const model = document.getElementById('modelSelect').value;
+        abortController = new AbortController();
+        const signal = abortController.signal;
+
+        const systemMsg = document.getElementById('megapromptInput').value || '';
+        const messages = [];
+        if (systemMsg) messages.push({ role: 'system', content: systemMsg });
+        const recentHistory = chatHistory.slice(-20).filter(m => m.role !== 'system');
+        messages.push(...recentHistory.map(m => ({ role: m.role, content: m.content })));
+        messages.push({ role: 'user', content: prompt });
+
+        if (provider === 'deepseek') {
+            const body = { model, messages, stream: true, temperature: 0.7 };
+            if (model === 'deepseek-v4-pro' && useThinking) body.extra_body = { thinking: { type: 'enabled' } };
+            const res = await fetch('https://api.deepseek.com/v1/chat/completions?thinking=auto', {
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` }, body: JSON.stringify(body), signal
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder();
+            let full = '';
+            while (true) {
+                const { done, value } = await reader.read(); if (done) break;
+                const chunk = decoder.decode(value);
+                const lines = chunk.split('\n');
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const data = line.slice(6);
+                        if (data === '[DONE]') continue;
+                        try {
+                            const json = JSON.parse(data);
+                            const delta = json.choices[0]?.delta?.content;
+                            if (delta) { full += delta; if (onChunk) onChunk(delta); }
+                        } catch(e) {}
+                    }
+                }
+            }
+            return full;
+        } else if (provider === 'gemini') {
+            const contents = messages.filter(m => m.role !== 'system').map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] }));
+            const systemMsgG = systemMsg ? { parts: [{ text: systemMsg }] } : undefined;
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ system_instruction: systemMsgG, contents }), signal
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "Erreur Gemini";
+            if (onChunk) onChunk(text);
+            return text;
+        } else if (provider === 'anthropic') {
+            const nonSys = messages.filter(m => m.role !== 'system');
+            const res = await fetch('https://api.anthropic.com/v1/messages', {
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+                body: JSON.stringify({ model: 'claude-3-haiku-20240307', max_tokens: 4096, system: systemMsg, messages: nonSys.map(m => ({ role: m.role, content: m.content })) }), signal
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            const text = data.content?.[0]?.text || "Erreur Anthropic";
+            if (onChunk) onChunk(text);
+            return text;
+        }
+        throw new Error('Provider non supporté');
+    }
+
+    async function sendMessage() {
+        if (isStreaming) return;
+        const input = document.getElementById('chatInput');
+        const message = input.value.trim();
+        if (!message) return;
+        addMessage('user', message);
+        input.value = '';
+        input.style.height = 'auto';
+        isStreaming = true;
+
+        const container = document.getElementById('chatMessages');
+        const tempDiv = document.createElement('div');
+        tempDiv.className = 'message assistant';
+        container.appendChild(tempDiv);
+        let buffer = '';
+        try {
+            const full = await callAPI(message, (chunk) => {
+                buffer += chunk;
+                tempDiv.textContent = buffer;
+                container.scrollTop = container.scrollHeight;
+            });
+            tempDiv.textContent = full;
+            addMessage('assistant', full);
+        } catch (err) {
+            tempDiv.textContent = `❌ Erreur : ${err.message}`;
+            showToast(err.message);
+        } finally {
+            isStreaming = false;
+            abortController = null;
+        }
+    }
+
+    // ==================== EXPORTS ====================
+    function exportTxt() {
+        let txt = '';
+        chatHistory.forEach(m => txt += `${m.role.toUpperCase()}: ${m.content}\n\n`);
+        const blob = new Blob([txt], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `conversation_${new Date().toISOString().slice(0,19)}.txt`;
+        a.click();
+        showToast('Conversation exportée en TXT');
+    }
+    function exportJson() {
+        const megaprompt = document.getElementById('megapromptInput').value;
+        const data = { megaprompt, exportDate: new Date().toISOString() };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `megaprompt_${new Date().toISOString().slice(0,19)}.json`;
+        a.click();
+        showToast('Méga‑prompt exporté en JSON');
+    }
+    function exportHtml() {
+        const htmlContent = document.documentElement.outerHTML;
+        const blob = new Blob([htmlContent], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `atelier_backup_${new Date().toISOString().slice(0,10)}.html`;
+        a.click();
+        showToast('Outils sauvegardé (HTML)');
+    }
+
+    // ==================== INITIALISATION ====================
+    document.addEventListener('DOMContentLoaded', () => {
+        loadMegaprompt();
+        loadChat();
+        const savedKeys = JSON.parse(localStorage.getItem('api_keys') || '{}');
+        const savedProvider = localStorage.getItem('last_provider') || 'deepseek';
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        const providerSelect = document.getElementById('providerSelect');
+        providerSelect.value = savedProvider;
+        apiKeyInput.value = savedKeys[savedProvider] || '';
+        providerSelect.addEventListener('change', () => {
+            const prov = providerSelect.value;
+            apiKeyInput.value = savedKeys[prov] || '';
+            localStorage.setItem('last_provider', prov);
+        });
+        apiKeyInput.addEventListener('change', () => {
+            const prov = providerSelect.value;
+            savedKeys[prov] = apiKeyInput.value.trim();
+            localStorage.setItem('api_keys', JSON.stringify(savedKeys));
+        });
+        document.getElementById('saveMegapromptBtn').addEventListener('click', saveMegaprompt);
+        document.getElementById('testApiBtn').addEventListener('click', async () => {
+            try {
+                await callAPI('Réponds "OK"', () => {});
+                document.getElementById('apiStatus').textContent = '🟢 Connecté';
+                showToast('API OK');
+            } catch(e) {
+                document.getElementById('apiStatus').textContent = '🔴 Erreur';
+                showToast(`Erreur : ${e.message}`);
+            }
+        });
+        document.getElementById('sendBtn').addEventListener('click', sendMessage);
+        document.getElementById('chatInput').addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+        document.getElementById('exportTxtBtn').addEventListener('click', exportTxt);
+        document.getElementById('exportJsonBtn').addEventListener('click', exportJson);
+        document.getElementById('exportHtmlBtn').addEventListener('click', exportHtml);
+        document.getElementById('clearChatBtn').addEventListener('click', clearChat);
+        // Auto-resize textarea
+        const chatInput = document.getElementById('chatInput');
+        chatInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 150) + 'px';
+        });
+        // Mode réflexion (optionnel)
+        const modelSelect = document.getElementById('modelSelect');
+        const thinkingDiv = document.createElement('div');
+        thinkingDiv.style.display = 'none';
+        thinkingDiv.innerHTML = '<input type="checkbox" id="thinkingCheck"> Mode réflexion';
+        document.querySelector('.api-bar').appendChild(thinkingDiv);
+        modelSelect.addEventListener('change', () => {
+            const isV4Pro = modelSelect.value === 'deepseek-v4-pro';
+            thinkingDiv.style.display = isV4Pro ? 'inline-flex' : 'none';
+        });
+        document.getElementById('thinkingCheck')?.addEventListener('change', (e) => { useThinking = e.target.checked; });
+        showToast('Atelier prêt. Entrez votre clé API.');
+    });
+</script>
+</body>
+</html>
