@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Atelier GIANNI P. – Version stable (extraction fichiers)</title>
+    <title>Atelier GIANNI P. – Affichage clair</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -14,31 +14,31 @@
             padding: 20px;
         }
         .container {
-            max-width: 900px;
+            max-width: 1000px;
             margin: 0 auto;
             background: #2a2a3e;
-            border-radius: 16px;
+            border-radius: 20px;
             padding: 1.5rem;
             box-shadow: 0 8px 20px rgba(0,0,0,0.3);
         }
         h1 {
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             color: #ffb347;
             margin-bottom: 0.5rem;
         }
         .api-bar {
             display: flex;
             flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
+            gap: 0.6rem;
+            margin-bottom: 1.5rem;
             padding-bottom: 1rem;
             border-bottom: 1px solid #3a3a5a;
         }
         .api-bar select, .api-bar input, .api-bar button {
             background: #1e1e2f;
             border: 1px solid #3a3a5a;
-            padding: 0.5rem;
-            border-radius: 6px;
+            padding: 0.5rem 0.8rem;
+            border-radius: 8px;
             color: #e0e0e0;
             font-size: 0.9rem;
         }
@@ -50,9 +50,9 @@
             border: none;
         }
         .api-bar button:hover { background: #ff9f1c; }
-        .status { font-size: 0.75rem; margin-left: auto; align-self: center; }
+        .status { font-size: 0.8rem; margin-left: auto; align-self: center; }
         .megaprompt-section {
-            margin-bottom: 1rem;
+            margin-bottom: 1.2rem;
         }
         .megaprompt-section textarea {
             width: 100%;
@@ -60,82 +60,119 @@
             background: #1e1e2f;
             border: 1px solid #3a3a5a;
             color: #e0e0e0;
-            padding: 0.5rem;
-            border-radius: 8px;
+            padding: 0.6rem;
+            border-radius: 10px;
             resize: vertical;
             font-family: monospace;
+            font-size: 0.85rem;
         }
+        /* Zone des messages : aérée et lisible */
         .chat-messages {
-            background: #1e1e2f;
-            border-radius: 12px;
+            background: #1a1a2a;
+            border-radius: 16px;
             padding: 1rem;
             height: 500px;
             overflow-y: auto;
-            margin-bottom: 1rem;
+            margin-bottom: 1.2rem;
+            scroll-behavior: smooth;
         }
+        /* Structure de chaque message */
         .message {
-            margin-bottom: 1rem;
-            padding: 0.5rem 1rem;
-            border-radius: 12px;
-            max-width: 85%;
-            word-wrap: break-word;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            border-radius: 18px;
+            max-width: 90%;
+            clear: both;
             position: relative;
+            font-size: 1rem;
+            line-height: 1.5;
         }
+        /* Message utilisateur (droite) */
         .message.user {
             background: #ffb34720;
-            border-left: 3px solid #ffb347;
+            border-left: 4px solid #ffb347;
             margin-left: auto;
-            text-align: right;
+            text-align: left;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
         }
+        /* Message assistant (gauche) */
         .message.assistant {
             background: #2a3a5a;
-            border-left: 3px solid #ffb347;
+            border-left: 4px solid #ffb347;
+            margin-right: auto;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
         }
-        .message-actions {
+        /* Code à l'intérieur des messages */
+        .message code, .message pre {
+            background: #1e1e2f;
+            padding: 0.2rem 0.4rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        .message pre {
+            padding: 0.5rem;
             margin-top: 0.5rem;
+            background: #0f0f1a;
+        }
+        /* Actions sous les messages assistant */
+        .message-actions {
+            margin-top: 0.6rem;
             display: flex;
-            gap: 0.5rem;
+            gap: 0.6rem;
             justify-content: flex-end;
         }
         .message-actions button {
             background: #3a4a6a;
             border: none;
-            padding: 0.2rem 0.8rem;
-            border-radius: 4px;
+            padding: 0.3rem 1rem;
+            border-radius: 20px;
             cursor: pointer;
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             color: #e0e0e0;
+            transition: 0.2s;
         }
         .message-actions button:hover { background: #ffb347; color: #1e1e2f; }
+        /* Saut de ligne subtil entre deux tours de dialogue */
+        .chat-messages hr {
+            margin: 0.5rem 0;
+            border: 0;
+            height: 1px;
+            background: #3a3a5a;
+            opacity: 0.4;
+        }
         .input-area {
             display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
+            gap: 0.7rem;
+            margin-bottom: 1.2rem;
         }
         .input-area textarea {
             flex: 1;
             background: #1e1e2f;
             border: 1px solid #3a3a5a;
             color: #e0e0e0;
-            padding: 0.75rem;
-            border-radius: 12px;
+            padding: 0.8rem;
+            border-radius: 16px;
             resize: none;
             font-family: monospace;
-            min-height: 60px;
+            font-size: 0.9rem;
+            min-height: 70px;
         }
         .input-area button {
             background: #ffb347;
             border: none;
             padding: 0 1.5rem;
-            border-radius: 12px;
+            border-radius: 30px;
             font-weight: bold;
             cursor: pointer;
             color: #1e1e2f;
+            font-size: 1rem;
         }
         .export-bar {
             display: flex;
             flex-wrap: wrap;
-            gap: 0.5rem;
+            gap: 0.6rem;
             margin-top: 1rem;
             padding-top: 1rem;
             border-top: 1px solid #3a3a5a;
@@ -143,10 +180,12 @@
         .export-bar button {
             background: #2a3a5a;
             border: 1px solid #3a3a5a;
-            padding: 0.4rem 1rem;
-            border-radius: 6px;
+            padding: 0.4rem 1.2rem;
+            border-radius: 30px;
             cursor: pointer;
             color: #e0e0e0;
+            font-size: 0.8rem;
+            transition: 0.2s;
         }
         .export-bar button:hover { background: #3a4a6a; }
         .legal {
@@ -164,45 +203,22 @@
             transform: translateX(-50%);
             background: #ffb347;
             color: #1e1e2f;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
+            padding: 0.5rem 1.2rem;
+            border-radius: 40px;
             font-size: 0.8rem;
             opacity: 0;
             transition: opacity 0.3s;
             pointer-events: none;
             z-index: 1000;
+            white-space: nowrap;
         }
         .toast.show { opacity: 1; }
-        .modal {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-        }
-        .modal-content {
-            background: #2a2a3e;
-            padding: 1.5rem;
-            border-radius: 16px;
-            max-width: 500px;
-            text-align: center;
-        }
-        .modal-content button {
-            margin-top: 1rem;
-            background: #ffb347;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            cursor: pointer;
-        }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body>
 <div class="container">
-    <h1>🧠 Atelier GIANNI P. – Version stable</h1>
+    <h1>🧠 Atelier GIANNI P. – Version claire</h1>
     <div class="api-bar">
         <select id="providerSelect">
             <option value="deepseek">DeepSeek</option>
@@ -223,7 +239,7 @@
         <label>🧠 Méga‑prompt (instructions système)</label>
         <textarea id="megapromptInput" placeholder="Instructions système..."></textarea>
         <div style="display:flex; justify-content:flex-end; margin-top:0.3rem;">
-            <button id="saveMegapromptBtn" style="background:#2a3a5a; border:none; padding:0.2rem 1rem;">💾 Enregistrer</button>
+            <button id="saveMegapromptBtn" style="background:#2a3a5a; border:none; padding:0.3rem 1rem; border-radius:30px;">💾 Enregistrer</button>
         </div>
     </div>
 
@@ -254,12 +270,16 @@
 
     if (!localStorage.getItem('legal_accepted')) {
         const modal = document.createElement('div');
-        modal.className = 'modal';
-        modal.innerHTML = `<div class="modal-content">
+        modal.style.position = 'fixed'; modal.style.top = '0'; modal.style.left = '0';
+        modal.style.width = '100%'; modal.style.height = '100%';
+        modal.style.backgroundColor = 'rgba(0,0,0,0.8)';
+        modal.style.display = 'flex'; modal.style.alignItems = 'center'; modal.style.justifyContent = 'center';
+        modal.style.zIndex = '2000';
+        modal.innerHTML = `<div style="background:#2a2a3e; padding:1.5rem; border-radius:20px; max-width:500px; text-align:center;">
             <h3>📜 Conditions d'utilisation</h3>
-            <p>En utilisant cet atelier, vous acceptez le cadre juridique suivant :</p>
+            <p style="margin:1rem 0;">En utilisant cet atelier, vous acceptez le cadre juridique suivant :</p>
             <pre style="text-align:left; background:#1e1e2f; padding:0.5rem; border-radius:8px;">${LEGAL_TEXT}</pre>
-            <button id="acceptLegal">J'accepte</button>
+            <button id="acceptLegal" style="background:#ffb347; border:none; padding:0.5rem 1rem; border-radius:30px;">J'accepte</button>
         </div>`;
         document.body.appendChild(modal);
         document.getElementById('acceptLegal').onclick = () => {
@@ -311,7 +331,7 @@
     function loadChat() {
         const saved = localStorage.getItem(CHAT_KEY);
         if (saved) { try { chatHistory = JSON.parse(saved); } catch(e) {} }
-        if (!chatHistory.length) chatHistory = [{ role: 'assistant', content: 'Atelier prêt. Cadre juridique actif.' }];
+        if (!chatHistory.length) chatHistory = [{ role: 'assistant', content: 'Atelier prêt. Cadre juridique actif. Affichage clair.' }];
         renderChat();
     }
     function saveChat() { localStorage.setItem(CHAT_KEY, JSON.stringify(chatHistory)); }
@@ -330,32 +350,34 @@
     function renderChat() {
         const container = document.getElementById('chatMessages');
         container.innerHTML = '';
-        chatHistory.forEach((msg, idx) => {
+        for (let i = 0; i < chatHistory.length; i++) {
+            const msg = chatHistory[i];
             const div = document.createElement('div');
             div.className = `message ${msg.role}`;
             div.textContent = msg.content;
             container.appendChild(div);
-
             if (msg.role === 'assistant') {
                 const actionsDiv = document.createElement('div');
                 actionsDiv.className = 'message-actions';
-
                 const copyBtn = document.createElement('button');
                 copyBtn.textContent = '📋 Copier .txt';
                 copyBtn.onclick = () => {
                     navigator.clipboard.writeText(msg.content);
                     showToast('Texte copié');
                 };
-
                 const downloadBtn = document.createElement('button');
                 downloadBtn.textContent = '📦 Télécharger fichiers';
                 downloadBtn.onclick = () => extractAndDownloadFiles(msg.content);
-
                 actionsDiv.appendChild(copyBtn);
                 actionsDiv.appendChild(downloadBtn);
                 div.appendChild(actionsDiv);
             }
-        });
+            // Ajouter une séparation entre les tours (sauf après le dernier)
+            if (i < chatHistory.length - 1) {
+                const hr = document.createElement('hr');
+                container.appendChild(hr);
+            }
+        }
         container.scrollTop = container.scrollHeight;
     }
 
@@ -403,16 +425,13 @@
         const model = document.getElementById('modelSelect').value;
         abortController = new AbortController();
         const signal = abortController.signal;
-
         let systemMsg = document.getElementById('megapromptInput').value || '';
         if (!systemMsg.includes("LOI N°1")) systemMsg += "\n\n" + LEGAL_TEXT;
-
         const messages = [];
         if (systemMsg) messages.push({ role: 'system', content: systemMsg });
         const recentHistory = chatHistory.slice(-20).filter(m => m.role !== 'system');
         messages.push(...recentHistory.map(m => ({ role: m.role, content: m.content })));
         messages.push({ role: 'user', content: prompt });
-
         if (provider === 'deepseek') {
             const body = { model, messages, stream: true, temperature: 0.7 };
             if (model === 'deepseek-v4-pro' && useThinking) body.extra_body = { thinking: { type: 'enabled' } };
@@ -475,7 +494,6 @@
         input.value = '';
         input.style.height = 'auto';
         isStreaming = true;
-
         const container = document.getElementById('chatMessages');
         const tempDiv = document.createElement('div');
         tempDiv.className = 'message assistant';
@@ -502,29 +520,20 @@
         let txt = '';
         chatHistory.forEach(m => txt += `${m.role.toUpperCase()}: ${m.content}\n\n`);
         const blob = new Blob([txt], { type: 'text/plain' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `conversation_${new Date().toISOString().slice(0,19)}.txt`;
-        a.click();
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `conversation_${new Date().toISOString().slice(0,19)}.txt`; a.click();
         showToast('Conversation exportée en TXT');
     }
     function exportJson() {
         const megaprompt = document.getElementById('megapromptInput').value;
         const data = { megaprompt, exportDate: new Date().toISOString() };
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `megaprompt_${new Date().toISOString().slice(0,19)}.json`;
-        a.click();
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `megaprompt_${new Date().toISOString().slice(0,19)}.json`; a.click();
         showToast('Méga‑prompt exporté en JSON');
     }
     function exportHtml() {
         const htmlContent = document.documentElement.outerHTML;
         const blob = new Blob([htmlContent], { type: 'text/html' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `atelier_backup_${new Date().toISOString().slice(0,10)}.html`;
-        a.click();
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `atelier_backup_${new Date().toISOString().slice(0,10)}.html`; a.click();
         showToast('Outils sauvegardé (HTML)');
     }
 
@@ -573,9 +582,9 @@
         });
         document.getElementById('thinkingCheck')?.addEventListener('change', (e) => { useThinking = e.target.checked; });
         if (!localStorage.getItem('legal_accepted')) {
-            // déjà
+            // modal déjà géré
         } else {
-            showToast('Atelier prêt. Boutons "📦 Télécharger fichiers" actifs.');
+            showToast('Atelier prêt – affichage clair. Boutons de téléchargement actifs.');
         }
     });
 </script>
